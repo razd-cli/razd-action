@@ -1,0 +1,40 @@
+name: 'razd-cli/razd-action'
+description: 'GitHub Action template for mise and razd setup'
+author: 'razd-cli'
+branding:
+  icon: 'package'
+  color: 'blue'
+inputs:
+  mise-version:
+    description: 'mise version'
+    required: true
+    default: '2025.1.1'
+  checkout-repository:
+    description: 'checkout repository'
+    required: false
+    default: 'true'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: ${{ inputs.checkout-repository == 'true' }}
+    - name: Setup mise and install tools
+      uses: jdx/mise-action@v2
+      with:
+        install: false
+        cache: true
+        experimental: true
+    - name: Install razd
+      run: |
+        mise plugin install razd https://github.com/razd-cli/vfox-plugin-razd
+        mise ls-remote razd || echo "Could not list versions"
+        mise use -g razd
+        mise install
+      shell: bash
+    - name: Verify installations
+      run: mise list
+      shell: bash
+    - name: Verify razd
+      run: razd --version
+      shell: bash

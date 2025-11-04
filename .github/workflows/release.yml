@@ -1,0 +1,127 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Триггер на теги вида v1.0.0, v2.1.3, etc.
+
+permissions:
+  contents: write  # Нужно для создания релизов
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Получаем полную историю для changelog
+          
+      - name: Get tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Получаем предыдущий тег
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          # Создаем changelog
+          cat > changelog.md << 'EOF'
+          ## 🚀 What's New
+          
+          EOF
+          
+          if [ -n "$PREV_TAG" ]; then
+            echo "### 🔄 Changes since $PREV_TAG" >> changelog.md
+            echo "" >> changelog.md
+            
+            # Получаем коммиты между тегами с категоризацией
+            git log --pretty=format:"%s" $PREV_TAG..HEAD | while read commit; do
+              if echo "$commit" | grep -i "^feat\|^add\|^new"; then
+                echo "- 🚀 **Feature:** $commit" >> changelog.md
+              elif echo "$commit" | grep -i "^fix\|^bug"; then
+                echo "- 🐛 **Fix:** $commit" >> changelog.md  
+              elif echo "$commit" | grep -i "^doc\|^readme"; then
+                echo "- 📚 **Docs:** $commit" >> changelog.md
+              elif echo "$commit" | grep -i "^refactor\|^improve"; then
+                echo "- 🔧 **Improvement:** $commit" >> changelog.md
+              else
+                echo "- 📝 $commit" >> changelog.md
+              fi
+            done
+          else
+            echo "🎉 **First release of razd-action!**" >> changelog.md
+            echo "" >> changelog.md
+            echo "### ✨ Features:" >> changelog.md
+            echo "- ✅ Automatic mise installation (version 2025.11.2)" >> changelog.md  
+            echo "- ✅ razd CLI setup via vfox plugin" >> changelog.md
+            echo "- ✅ Configurable mise versions" >> changelog.md
+            echo "- ✅ Optional repository checkout" >> changelog.md
+            echo "- ✅ Installation verification" >> changelog.md
+          fi
+          
+          cat >> changelog.md << EOF
+          
+          ## 📖 Quick Start
+          
+          \`\`\`yaml
+          - name: Setup razd
+            uses: razd-cli/razd-action@${{ steps.tag.outputs.TAG_NAME }}
+          \`\`\`
+          
+          ### 🔧 With custom options:
+          \`\`\`yaml  
+          - name: Setup razd
+            uses: razd-cli/razd-action@${{ steps.tag.outputs.TAG_NAME }}
+            with:
+              mise-version: '2025.11.2'
+              checkout-repository: 'true'
+          \`\`\`
+          
+          ## 📋 Parameters
+          
+          | Parameter | Description | Default |
+          |-----------|-------------|---------|
+          | \`mise-version\` | Version of mise to install | \`2025.11.2\` |
+          | \`checkout-repository\` | Whether to checkout repository | \`true\` |
+          
+          ## 📚 Documentation
+          
+          See [README.md](https://github.com/razd-cli/razd-action/blob/main/README.md) for complete documentation.
+          
+          ---
+          **Full Changelog**: https://github.com/razd-cli/razd-action/compare/$PREV_TAG...${{ steps.tag.outputs.TAG_NAME }}
+          EOF
+          
+          # Выводим changelog для отладки
+          echo "Generated changelog:"
+          cat changelog.md
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG_NAME }}
+          name: Release ${{ steps.tag.outputs.TAG_NAME }}
+          body_path: changelog.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true  # GitHub автоматически добавит список PR и контрибьюторов
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update major version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_NAME=${{ steps.tag.outputs.TAG_NAME }}
+          MAJOR_VERSION=$(echo $TAG_NAME | cut -d. -f1)  # Извлекаем v1 из v1.2.3
+          
+          echo "Creating/updating major version tag: $MAJOR_VERSION"
+          
+          # Создаем или обновляем мажорный тег
+          git tag -f $MAJOR_VERSION
+          git push origin $MAJOR_VERSION --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

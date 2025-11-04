@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: razd-cli/razd-action@v1.0.0
+      - uses: razd-cli/razd-action@v1.0.1
         with:
           mise-version: '2025.11.2'
           checkout-repository: 'true'

@@ -8,7 +8,7 @@ inputs:
   mise-version:
     description: 'mise version'
     required: true
-    default: '2025.1.1'
+    default: '2025.11.2'
   checkout-repository:
     description: 'checkout repository'
     required: false
@@ -22,6 +22,7 @@ runs:
     - name: Setup mise and install tools
       uses: jdx/mise-action@v2
       with:
+        version: ${{ inputs.mise-version }}
         install: false
         cache: true
         experimental: true

@@ -28,10 +28,15 @@ runs:
         experimental: true
     - name: Install razd
       run: |
+        set -e
+        echo "Installing razd plugin..."
         mise plugin install razd https://github.com/razd-cli/vfox-plugin-razd
+        echo "Listing available razd versions..."
         mise ls-remote razd || echo "Could not list versions"
-        mise use -g razd
-        mise install
+        echo "Using latest razd version globally..."
+        mise use -g razd@latest
+        echo "Installing razd..."
+        mise install razd
       shell: bash
     - name: Verify installations
       run: mise list

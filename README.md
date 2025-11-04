@@ -40,20 +40,24 @@ jobs:
 
 ### Базовое использование
 ```yaml
-- uses: razd-cli/razd-action@v1.0.0
+- uses: razd-cli/razd-action@v1.0.1
 ```
 
-### С определенной версией mise
+### Минимальный workflow
 ```yaml
-- uses: razd-cli/razd-action@v1.0.0
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: razd-cli/razd-action@v1.0.1
+      - run: razd install && razd build
+```
+
+### С кастомными параметрами
+```yaml
+- uses: razd-cli/razd-action@v1.0.1
   with:
     mise-version: '2025.11.2'
-```
-
-### Без checkout (если уже выполнен)
-```yaml
-- uses: actions/checkout@v4
-- uses: razd-cli/razd-action@v1.0.0
-  with:
-    checkout-repository: 'false'
+    checkout-repository: 'false'  # если checkout уже выполнен
 ```

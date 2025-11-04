@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: razd-cli/razd-action@v1
+      - uses: razd-cli/razd-action@v1.0.0
         with:
           mise-version: '2025.11.2'
           checkout-repository: 'true'
@@ -40,12 +40,12 @@ jobs:
 
 ### Базовое использование
 ```yaml
-- uses: razd-cli/razd-action@v1
+- uses: razd-cli/razd-action@v1.0.0
 ```
 
 ### С определенной версией mise
 ```yaml
-- uses: razd-cli/razd-action@v1
+- uses: razd-cli/razd-action@v1.0.0
   with:
     mise-version: '2025.11.2'
 ```
@@ -53,7 +53,7 @@ jobs:
 ### Без checkout (если уже выполнен)
 ```yaml
 - uses: actions/checkout@v4
-- uses: razd-cli/razd-action@v1
+- uses: razd-cli/razd-action@v1.0.0
   with:
     checkout-repository: 'false'
 ```

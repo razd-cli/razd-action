@@ -12,11 +12,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: razd-cli/razd-action@v1.0.1
+      - uses: razd-cli/razd-action@v2
         with:
-          mise-version: '2025.11.2'
+          mise-version: '2025.6.6'
+          razd-version: 'latest'
           checkout-repository: 'true'
-      
+
       - name: Use razd
         run: razd --version
 ```
@@ -25,22 +26,22 @@ jobs:
 
 | Параметр | Описание | Обязательный | По умолчанию |
 |----------|----------|--------------|--------------|
-| `mise-version` | Версия mise для установки | Да | `2025.11.2` |
+| `mise-version` | Версия mise для установки | Да | `2025.6.6` |
+| `razd-version` | Версия razd (`latest` или конкретная, например `1.2.3`) | Нет | `latest` |
 | `checkout-repository` | Выполнить checkout репозитория | Нет | `true` |
 
 ## Что делает это действие
 
 1. Выполняет checkout кода (если `checkout-repository` = `true`)
 2. Устанавливает mise используя `jdx/mise-action`
-3. Добавляет razd плагин
-4. Устанавливает razd глобально
-5. Проверяет установку
+3. Скачивает и устанавливает razd CLI напрямую из GitHub Releases
+4. Проверяет установку
 
 ## Примеры использования
 
 ### Базовое использование
 ```yaml
-- uses: razd-cli/razd-action@v1.0.1
+- uses: razd-cli/razd-action@v2
 ```
 
 ### Минимальный workflow
@@ -50,14 +51,41 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: razd-cli/razd-action@v1.0.1
+      - uses: razd-cli/razd-action@v2
       - run: razd install && razd build
 ```
 
-### С кастомными параметрами
+### С конкретной версией razd
 ```yaml
-- uses: razd-cli/razd-action@v1.0.1
+- uses: razd-cli/razd-action@v2
   with:
-    mise-version: '2025.11.2'
-    checkout-repository: 'false'  # если checkout уже выполнен
+    razd-version: '1.2.3'
+```
+
+### Без checkout (если checkout уже выполнен)
+```yaml
+- uses: razd-cli/razd-action@v2
+  with:
+    checkout-repository: 'false'
+```
+
+### Полный CI пример
+```yaml
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: razd-cli/razd-action@v2
+        with:
+          mise-version: '2025.6.6'
+          razd-version: 'latest'
+
+      - name: Install dependencies
+        run: razd install
+
+      - name: Build
+        run: razd build
 ```

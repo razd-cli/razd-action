@@ -17,7 +17,8 @@ jobs:
       - name: Test our action
         uses: ./
         with:
-          mise-version: '2025.11.2'
+          mise-version: '2025.6.6'
+          razd-version: 'latest'
           checkout-repository: 'false'
       
       - name: Test razd installation 

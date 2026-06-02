@@ -1,5 +1,5 @@
 name: 'razd-cli/razd-action'
-description: 'GitHub Action template for mise and razd setup'
+description: 'GitHub Action to set up mise and razd CLI'
 author: 'razd-cli'
 branding:
   icon: 'package'
@@ -8,7 +8,11 @@ inputs:
   mise-version:
     description: 'mise version'
     required: true
-    default: '2025.11.2'
+    default: '2025.6.6'
+  razd-version:
+    description: 'razd version (e.g. "1.2.3") or "latest"'
+    required: false
+    default: 'latest'
   checkout-repository:
     description: 'checkout repository'
     required: false
@@ -27,17 +31,34 @@ runs:
         cache: true
         experimental: true
     - name: Install razd
+      shell: bash
+      env:
+        RAZD_VERSION: ${{ inputs.razd-version }}
       run: |
         set -e
-        echo "Installing razd plugin..."
-        mise plugin install razd https://github.com/razd-cli/vfox-plugin-razd
-        echo "Listing available razd versions..."
-        mise ls-remote razd || echo "Could not list versions"
-        echo "Using latest razd version globally..."
-        mise use -g razd@latest
-        echo "Installing razd..."
-        mise install razd
-      shell: bash
+        
+        OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+        ARCH=$(uname -m)
+        case "$ARCH" in
+          x86_64)  ARCH="amd64" ;;
+          aarch64) ARCH="arm64" ;;
+          arm64)   ARCH="arm64" ;;
+          *)       echo "Unsupported architecture: $ARCH"; exit 1 ;;
+        esac
+        
+        if [ "$RAZD_VERSION" = "latest" ]; then
+          RAZD_VERSION=$(curl -sL https://api.github.com/repos/razd-cli/razd/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+          if [ -z "$RAZD_VERSION" ]; then
+            echo "Failed to determine latest razd version"
+            exit 1
+          fi
+          echo "Latest razd version: $RAZD_VERSION"
+        fi
+        
+        echo "Installing razd v${RAZD_VERSION} for ${OS}_${ARCH}..."
+        curl -sL "https://github.com/razd-cli/razd/releases/download/v${RAZD_VERSION}/razd_${OS}_${ARCH}.tar.gz" | tar xz -C /usr/local/bin razd
+        
+        echo "razd v${RAZD_VERSION} installed"
     - name: Verify installations
       run: mise list
       shell: bash

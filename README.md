@@ -1,6 +1,8 @@
 # razd-action
 
-GitHub Action для установки и настройки mise с razd CLI.
+GitHub Action для установки mise и razd CLI (mise provisioner).
+
+> **Для проектов с devbox** — используйте [razd-action-devbox](https://github.com/razd-cli/razd-action-devbox).
 
 ## Использование
 
@@ -89,3 +91,7 @@ jobs:
       - name: Build
         run: razd build
 ```
+
+## Связанные действия
+
+- [razd-action-devbox](https://github.com/razd-cli/razd-action-devbox) — для проектов с devbox provisioner

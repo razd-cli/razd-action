@@ -1,5 +1,5 @@
 name: 'razd-cli/razd-action'
-description: 'GitHub Action to set up mise and razd CLI'
+description: 'GitHub Action to set up mise and razd CLI (mise provisioner)'
 author: 'razd-cli'
 branding:
   icon: 'package'
